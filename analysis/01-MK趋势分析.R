@@ -34,3 +34,4 @@ names(firs_sen) <- c("Z", "slope", "p-value")
 writeRaster(firs_sen[[1]], filename = file.path(out_dir, paste0(output_name_prefix, "_Z.tif")), overwrite=TRUE)
 writeRaster(firs_sen[[2]], filename = file.path(out_dir, paste0(output_name_prefix,"_slope.tif")), overwrite=TRUE)
 writeRaster(firs_sen[[3]], filename = file.path(out_dir, paste0(output_name_prefix,"_pvalue.tif")), overwrite=TRUE)
+
