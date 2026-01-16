@@ -1,37 +1,42 @@
 library(terra)
 library(trend)
-#输入一个文件夹内的单波段TIFF数据，在这里是历年的NDVI年最大值
 
-output_name_prefix <- 'ET'
-base_dir <- "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/03_基础数据_标准化/ET"
-out_dir <- 'F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/趋势分析/数据标准化后趋势结果'
+base_dir <- "G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/像元敏感性分析/滑动窗口敏感性分析CI_10y_1comp_lag1/KRD_sens-abs"
+out_dir <- 'G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/像元敏感性分析/滑动窗口敏感性分析CI_10y_1comp_lag1/趋势分析'
+prefix <- 'CI_KRD_sens'
 
 if (!dir.exists(out_dir)) {
   dir.create(out_dir, recursive = TRUE)
 }
 
-flnames <- list.files(path=file.path(base_dir),pattern='.tif$')
-fl<-file.path(base_dir,flnames)
+flnames <- list.files(path = file.path(base_dir), pattern = '.tif$')
+fl <- file.path(base_dir, flnames)
 print(fl)
 
-firs<-rast(fl)
+firs <- rast(fl)
+n_total_years <- length(fl)  # 总年份数
 
-#Sen+MK计算
-fun_sen<-function(x){
-  if(length(na.omit(x))<20) return(c(NA, NA, NA))#删除数据不连续含有NA的像元
-  MK_estimate <- trend::sens.slope(ts(na.omit(x), frequency = 1), conf.level = 0.95) #Sen斜率估计
-  slope <- MK_estimate$estimates
-  MK_test <- MK_estimate$p.value
-  Zs <- MK_estimate$statistic
-  return(c(Zs, slope, MK_test))
+
+cat("总年份数:", n_total_years, "\n")
+
+
+# Sen+MK计算 - 通用版本
+fun_sen <- function(x,n_year) {
+  valid_data <- na.omit(x)
+  
+  # 动态判断数据完整性 这里可能是需要修改的
+  if (length(valid_data) < n_year) {
+    return(c(NA, NA, NA))
+  }
+  
+  MK_estimate <- trend::sens.slope(valid_data, conf.level = 0.95)
+  return(c(MK_estimate$statistic, MK_estimate$estimates, MK_estimate$p.value))
 }
 
-firs_sen = app(firs, fun_sen, cores=4 )
+firs_sen <- app(firs, fun_sen, n_year=n_total_years)
 names(firs_sen) <- c("Z", "slope", "p-value")
 
-
-# 分别写出三个结果
-writeRaster(firs_sen[[1]], filename = file.path(out_dir, paste0(output_name_prefix, "_Z.tif")), overwrite=TRUE)
-writeRaster(firs_sen[[2]], filename = file.path(out_dir, paste0(output_name_prefix,"_slope.tif")), overwrite=TRUE)
-writeRaster(firs_sen[[3]], filename = file.path(out_dir, paste0(output_name_prefix,"_pvalue.tif")), overwrite=TRUE)
-
+# 保存结果
+writeRaster(firs_sen[[1]], filename = file.path(out_dir, paste0(prefix,"_Z.tif")), overwrite = TRUE)
+writeRaster(firs_sen[[2]], filename = file.path(out_dir, paste0(prefix,"_slope.tif")), overwrite = TRUE)
+writeRaster(firs_sen[[3]], filename = file.path(out_dir, paste0(prefix,"_pvalue.tif")), overwrite = TRUE)
