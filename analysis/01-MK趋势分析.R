@@ -1,16 +1,19 @@
 library(terra)
 library(trend)
 
-base_dir <- "G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/像元敏感性分析/滑动窗口敏感性分析CI_10y_1comp_lag1/KRD_sens-abs"
-out_dir <- 'G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/像元敏感性分析/滑动窗口敏感性分析CI_10y_1comp_lag1/趋势分析'
-prefix <- 'CI_KRD_sens'
+input_dir <- "E:/Administrator/Documents/wechat_data/xwechat_files/wxid_bsczvtwojnmv22_bd93/msg/file/2026-03/01/01"
+out_dir <- 'E:/test'
+prefix <- 'spei_daily'
+
+# 并行运行线程数
+cores <- 16
 
 if (!dir.exists(out_dir)) {
   dir.create(out_dir, recursive = TRUE)
 }
 
-flnames <- list.files(path = file.path(base_dir), pattern = '.tif$')
-fl <- file.path(base_dir, flnames)
+flnames <- list.files(path = file.path(input_dir), pattern = '.tif$')
+fl <- file.path(input_dir, flnames)
 print(fl)
 
 firs <- rast(fl)
@@ -33,7 +36,7 @@ fun_sen <- function(x,n_year) {
   return(c(MK_estimate$statistic, MK_estimate$estimates, MK_estimate$p.value))
 }
 
-firs_sen <- app(firs, fun_sen, n_year=n_total_years)
+firs_sen <- app(firs, fun_sen, n_year=n_total_years,cores=cores)
 names(firs_sen) <- c("Z", "slope", "p-value")
 
 # 保存结果
