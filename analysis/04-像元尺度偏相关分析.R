@@ -77,7 +77,13 @@ calc_partial_corr_raster_terra <- function(pattern_list,
   
   # ----------- 2. 定义像元级偏相关函数 -----------
   
-  pcor_pixel_func <- function(x) {
+  pcor_pixel_func <- function(
+    x,
+    all_vars,
+    dependent_var,
+    independent_var,
+    control_vars
+    ) {
     # x 是一个向量，包含了单个像元上所有变量在所有时间点的值
     
     # 如果像元值全部为 NA，则直接返回 NA
@@ -102,19 +108,31 @@ calc_partial_corr_raster_terra <- function(pattern_list,
     
     # 使用 tryCatch 来处理计算中可能出现的错误
     result <- tryCatch({
-      # 执行偏相关检验
-      pcor_res <- ppcor::pcor.test(
-        x = df[[dependent_var]],
-        y = df[[independent_var]],
-        z = df[control_vars],
-        method = "pearson" # 可按需更改为 "spearman"
-      )
       
-      # 返回相关系数和 p-value
-      c(pcor_res$estimate, pcor_res$p.value)
+      if(length(control_vars)==0){
+        # 如果不控制，就是简单相关
+        r <- cor.test(
+          df[[dependent_var]],
+          df[[independent_var]],
+          method = "pearson"
+        )
+        
+        c(unname(r$estimate), r$p.value)
+        
+      }else{
+        # 执行偏相关检验
+        pcor_res <- ppcor::pcor.test(
+          x = df[[dependent_var]],
+          y = df[[independent_var]],
+          z = df[control_vars],
+          method = "pearson" # 可按需更改为 "spearman"
+        )
+        # 返回相关系数和 p-value
+        c(pcor_res$estimate, pcor_res$p.value)
+      }
       
     }, error = function(e) {
-      # 如果计算出错，同样返回 NA
+      message(conditionMessage(e))
       c(NA, NA)
     })
     
@@ -133,7 +151,11 @@ calc_partial_corr_raster_terra <- function(pattern_list,
   pcor_result_raster <- app(
     combined_stack,
     fun = pcor_pixel_func,
-    cores = cores
+    cores = cores,
+    all_vars=all_vars,
+    dependent_var=dependent_var,
+    independent_var=independent_var,
+    control_vars=control_vars
   )
   
   end_time <- Sys.time()
@@ -173,26 +195,23 @@ calc_partial_corr_raster_terra <- function(pattern_list,
 # -----------使用------------
 # 可以接着添加多个变量
 patterns <- list(
-  sfr = list(path = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/基础数据_对齐/SFR_时间插值", pattern = "karst_SFR_\\d+\\.tif$"),
-  krd = list(path = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/03_基础数据_标准化/KRD", pattern = "KRD_\\d+\\.tif$"),
-  p = list(path = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/基础数据_对齐/P_总量", pattern = "P_\\d+\\.tif$"),
-  tmp = list(path = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/基础数据_对齐/TMP", pattern = "TMP_\\d+\\.tif$"),
-  et = list(path = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/基础数据_对齐/ET", pattern = "ET_\\d+\\.tif$")
+  sfr = list(path = "G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/基础数据_对齐/SFR_时间插值", pattern = "karst_SFR_\\d+\\.tif$"),
+  krd = list(path = "G:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/03_基础数据_归一化/KRD", pattern = "KRD_\\d+\\.tif$")
 )
 
 # 因变量
 dependent_var = "sfr"
 # 自变量
-independent_var = "et"
+independent_var = "krd"
 # 控制变量
-control_vars = c('tmp','krd','p')
+control_vars = c()
 
-# 还得是一个核心最快 cores=1最快
+
 result <- calc_partial_corr_raster_terra(
   pattern_list = patterns,
   dependent_var = dependent_var,
   independent_var = independent_var,
   control_vars = control_vars,
-  output_dir = "F:/phd/03-第一篇论文/碳酸盐岩风化成土对石漠化恢复的响应_数据资料/数据_v3/偏相关分析_new0729",
-  cores = 1
+  output_dir = "D:/test",
+  cores = 12
 )
