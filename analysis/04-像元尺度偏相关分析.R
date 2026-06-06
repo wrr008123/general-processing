@@ -11,7 +11,6 @@ library(ppcor)
 #' @param independent_var character 自变量的名称 (必须是 pattern_list 中的一个键)。
 #' @param control_vars character 向量，包含一个或多个控制变量的名称 (必须是 pattern_list 中的键)。
 #' @param output_dir character 输出相关系数和p值栅格文件的文件夹。
-#' @param cores integer 用于并行计算的核心数。默认为 1。
 #'
 #' @return 返回一个包含两层（相关系数和p-value）的 SpatRaster 对象。
 #'
