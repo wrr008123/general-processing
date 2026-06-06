@@ -140,7 +140,7 @@ calc_partial_corr_raster_terra <- function(pattern_list,
   
   # ----------- 3. 应用函数并保存结果 -----------
   
-  cat(paste("\nStep 3: Starting pixel-wise partial correlation calculation on", cores, "core(s)...\n"))
+  cat(paste("\nStep 3: Starting pixel-wise partial correlation calculation...\n"))
   
   # 使用 terra::app 在每个像元上应用 pcor_pixel_func 函数
   # app 函数会自动处理并行化
