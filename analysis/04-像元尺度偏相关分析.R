@@ -19,8 +19,7 @@ calc_partial_corr_raster_terra <- function(pattern_list,
                                            dependent_var,
                                            independent_var,
                                            control_vars,
-                                           output_dir,
-                                           cores = 1) {
+                                           output_dir) {
   
   # ----------- 1. 加载和准备栅格数据 -----------
   
@@ -151,7 +150,6 @@ calc_partial_corr_raster_terra <- function(pattern_list,
   pcor_result_raster <- app(
     combined_stack,
     fun = pcor_pixel_func,
-    cores = cores,
     all_vars=all_vars,
     dependent_var=dependent_var,
     independent_var=independent_var,
@@ -212,6 +210,5 @@ result <- calc_partial_corr_raster_terra(
   dependent_var = dependent_var,
   independent_var = independent_var,
   control_vars = control_vars,
-  output_dir = "D:/test",
-  cores = 12
+  output_dir = "D:/test"
 )
